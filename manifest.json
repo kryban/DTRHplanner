@@ -1,0 +1,16 @@
+{
+  "name": "Down The Rabbit Hole 2026 Planner",
+  "short_name": "DTRH 2026",
+  "description": "DTRH 2026 timetable planner met beoordelingen",
+  "start_url": "/DTRHplanner/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6b3fa0",
+  "icons": [
+    {
+      "src": "https://www.downtherabbithole.nl/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
