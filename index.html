@@ -22,11 +22,10 @@
     #header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
     #header-meta p { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
     #header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    #btn-export.saved { background: #27ae60; color: #fff; }
     #filter-balk { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     #filter-rij2 { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-ster-balk { display: flex; gap: 2px; align-items: center; }
-    .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
+    .filter-ster-balk .ster { font-size: 22px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; }
     .filter-ster-balk .ster.vol { color: #f5c518; }
     .filter-zoek { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--bg-sec); color: var(--text); font-family: inherit; width: 130px; }
     #tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -36,25 +35,25 @@
     #timetable-header { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-head); font-size: 12px; color: var(--text-sec); }
     .col-tijd   { min-width: 95px; flex-shrink: 0; }
     .col-podium { min-width: 110px; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
-    .col-naam   { flex: 1; min-width: 80px; }
     .col-ster   { min-width: 110px; flex-shrink: 0; }
     .col-notitie { flex: 1; min-width: 80px; }
     .sortable { cursor: pointer; user-select: none; }
-    .row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+    .row { padding: 8px 12px; border-bottom: 0.5px solid var(--border); }
     .row:last-child { border-bottom: none; }
+    .row-rij { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .row-rij + .row-rij { padding-top: 4px; }
     .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); }
     .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; text-align: center; white-space: nowrap; }
-    .naam-link { font-weight: 600; font-size: 13px; color: var(--text); text-decoration: none; width: 100%; display: block; }
+    .naam-link { font-weight: 600; font-size: 13px; color: var(--text); text-decoration: none; display: block; width: 100%; }
     .naam-link:hover { color: #1db954; }
     .sterren { display: flex; gap: 2px; }
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
     .ster.vol { color: #f5c518; }
     .ster:hover { color: #f5c518; }
-    .row-sub { display: flex; align-items: center; gap: 10px; width: 100%; padding-top: 4px; }
     .notitie-tekst { font-size: 12px; color: var(--text-sec); cursor: pointer; min-height: 20px; padding: 4px 0; border-bottom: 1px dashed transparent; flex: 1; }
     .notitie-tekst:hover { border-bottom-color: var(--border); }
     .notitie-tekst.leeg { color: var(--border); font-style: italic; }
-    .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--accent); background: var(--bg-sec); color: var(--text); width: 100%; font-family: inherit; }
+    .notitie-input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 0.5px solid var(--accent); background: var(--bg-sec); color: var(--text); flex: 1; font-family: inherit; }
     .versie { margin-top: 24px; text-align: center; font-size: 11px; color: #888; }
   </style>
 </head>
@@ -83,7 +82,6 @@
     <div id="timetable-header">
       <span class="col-tijd sortable" data-kolom="tijd">Tijd <span id="icon-tijd">↕</span></span>
       <span class="col-podium sortable" data-kolom="podium">Podium <span id="icon-podium">↕</span></span>
-      <span class="col-naam"></span>
     </div>
     <div id="timetable-body"></div>
   </div>
@@ -94,8 +92,7 @@
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
 function tijdSort(t) {
   if (!t) return 0;
-  var parts = t.split(":");
-  var u = parseInt(parts[0]), m = parseInt(parts[1]||"0");
+  var p = t.split(":"), u = parseInt(p[0]), m = parseInt(p[1]||"0");
   if (isNaN(u)) return 0;
   if (u < 6) u += 24;
   return u * 60 + m;
@@ -104,10 +101,10 @@ function tijdSort(t) {
 // ── Statische programmering ───────────────────────────────────────────────────
 var PROG = {"festival":"Down The Rabbit Hole 2026","dagen":[{"dag":"Vrijdag","datum":"2026-07-03","acts":[{"podium":"Hotot","artiest":"Nederlands Philharmonisch","start":"14:00","einde":"14:45"},{"podium":"Hotot","artiest":"Sticks + Nederlands Philharmonisch","start":"15:45","einde":"16:30"},{"podium":"Hotot","artiest":"Son Mieux","start":"17:30","einde":"18:30"},{"podium":"Hotot","artiest":"CMAT","start":"19:30","einde":"20:30"},{"podium":"Hotot","artiest":"Empire of the Sun","start":"21:30","einde":"22:45"},{"podium":"Hotot","artiest":"Little Simz","start":"23:45","einde":"01:00"},{"podium":"Teddy Widder","artiest":"Paradise Bangkok Molam International Band","start":"14:45","einde":"15:45"},{"podium":"Teddy Widder","artiest":"Peaches","start":"16:30","einde":"17:30"},{"podium":"Teddy Widder","artiest":"Zwangere Guy","start":"18:30","einde":"19:30"},{"podium":"Teddy Widder","artiest":"Tomora","start":"20:30","einde":"21:30"},{"podium":"Teddy Widder","artiest":"De Staat becomes De Staat","start":"22:45","einde":"23:45"},{"podium":"Teddy Widder","artiest":"Rabbit Radio: Liza v/d Brink & Vera Siemons","start":"00:45","einde":"03:00"},{"podium":"Fuzzy Lop","artiest":"Jacob Alon","start":"14:45","einde":"15:45"},{"podium":"Fuzzy Lop","artiest":"Florence Road","start":"16:30","einde":"17:30"},{"podium":"Fuzzy Lop","artiest":"Mind Enterprises","start":"18:30","einde":"19:30"},{"podium":"Fuzzy Lop","artiest":"Kevin Morby","start":"20:30","einde":"21:30"},{"podium":"Fuzzy Lop","artiest":"Apparat","start":"22:30","einde":"23:30"},{"podium":"Fuzzy Lop","artiest":"Two Shell","start":"00:30","einde":"02:00"},{"podium":"Fuzzy Lop","artiest":"Avalon Emerson","start":"02:00","einde":"04:30"},{"podium":"Rex","artiest":"Morning Rave","start":"11:00","einde":"12:00"},{"podium":"Rex","artiest":"Vasco","start":"12:00","einde":"14:00"},{"podium":"Rex","artiest":"Lysah B2B Kim Josefine","start":"14:00","einde":"16:00"},{"podium":"Rex","artiest":"Kareem Ali (Live)","start":"16:00","einde":"17:00"},{"podium":"Rex","artiest":"Ash Lauryn","start":"17:00","einde":"19:00"},{"podium":"Rex","artiest":"Eycee","start":"19:00","einde":"21:30"},{"podium":"Rex","artiest":"Tom Trago presents: Ignorance","start":"21:30","einde":"22:30"},{"podium":"Rex","artiest":"Bella","start":"22:30","einde":"00:30"},{"podium":"Rex","artiest":"Amaliah B2B Niks","start":"00:30","einde":"02:30"},{"podium":"Rex","artiest":"Doppelgang","start":"02:30","einde":"04:30"},{"podium":"The Bizarre","artiest":"Samba Workshop","start":"12:00","einde":"12:30"},{"podium":"The Bizarre","artiest":"Roda da Holanda","start":"12:30","einde":"14:00"},{"podium":"The Bizarre","artiest":"Sèsè","start":"14:00","einde":"15:30"},{"podium":"The Bizarre","artiest":"Faisal","start":"15:30","einde":"16:30"},{"podium":"The Bizarre","artiest":"Onda Collective","start":"17:00","einde":"18:30"},{"podium":"The Bizarre","artiest":"Yúsu","start":"18:30","einde":"20:00"},{"podium":"The Bizarre","artiest":"Bronka","start":"20:00","einde":"21:30"},{"podium":"The Bizarre","artiest":"Sim-Oj","start":"21:30","einde":"23:00"},{"podium":"The Bizarre","artiest":"King Kami","start":"23:00","einde":"00:30"},{"podium":"The Bizarre","artiest":"Nems","start":"00:30","einde":"02:00"},{"podium":"The Bizarre","artiest":"Lamsi","start":"02:00","einde":"03:30"},{"podium":"Bossa Nova","artiest":"Adam Quartet + Kika Sprangers","start":"10:30","einde":"11:15"},{"podium":"Bossa Nova","artiest":"Dermot Henry","start":"13:00","einde":"13:45"},{"podium":"Bossa Nova","artiest":"Girl Group","start":"15:30","einde":"16:15"},{"podium":"Bossa Nova","artiest":"La Niña","start":"17:30","einde":"18:15"},{"podium":"Bossa Nova","artiest":"Orkater & Invites","start":"21:15","einde":"02:45"},{"podium":"The Croque Madame","artiest":"The Space Choir","start":"12:00","einde":"13:00"},{"podium":"The Croque Madame","artiest":"The Croque Madame Revue by Maison The Faux","start":"14:00","einde":"21:00"},{"podium":"The Croque Madame","artiest":"Queenie","start":"22:00","einde":"22:45"},{"podium":"The Croque Madame","artiest":"Jason","start":"22:45","einde":"00:30"},{"podium":"The Croque Madame","artiest":"Youngwoman","start":"00:30","einde":"03:00"},{"podium":"Holding","artiest":"Zine Workshop","start":"11:30","einde":"12:30"},{"podium":"Holding","artiest":"Honden Fokker","start":"13:30","einde":"14:15"},{"podium":"Holding","artiest":"Femme Fugazi","start":"15:45","einde":"16:30"},{"podium":"Holding","artiest":"Juny Martina","start":"17:45","einde":"18:30"},{"podium":"Holding","artiest":"Sterren Stralen Overal","start":"19:30","einde":"20:30"},{"podium":"Holding","artiest":"Kaat van Stralen","start":"21:45","einde":"22:30"},{"podium":"Holding","artiest":"Nachttrein","start":"23:00","einde":"04:00"},{"podium":"Radiate VI","artiest":"Torus","start":"11:00","einde":"13:00"},{"podium":"Radiate VI","artiest":"Jacob Dwyer","start":"13:00","einde":"14:00"},{"podium":"Radiate VI","artiest":"Merely","start":"14:00","einde":"15:00"},{"podium":"Radiate VI","artiest":"Nexcyia","start":"15:00","einde":"17:00"},{"podium":"Radiate VI","artiest":"Joleidy's Reprieve","start":"17:00","einde":"18:00"},{"podium":"Radiate VI","artiest":"Marathon Man","start":"18:00","einde":"20:00"},{"podium":"Radiate VI","artiest":"La Rat","start":"20:00","einde":"21:00"},{"podium":"Radiate VI","artiest":"Ojoo","start":"21:00","einde":"23:00"},{"podium":"Idyllische Veldje","artiest":"Knits & Notes","start":"11:00","einde":"13:30"},{"podium":"Idyllische Veldje","artiest":"Dans Workshop","start":"13:30","einde":"14:30"},{"podium":"Idyllische Veldje","artiest":"Discos Horizontes & Jamaican Jukebox","start":"14:30","einde":"22:00"},{"podium":"Idyllische Veldje","artiest":"Club Coco","start":"22:00","einde":"03:00"}]},{"dag":"Zaterdag","datum":"2026-07-04","acts":[{"podium":"Hotot","artiest":"Thee Sacred Souls","start":"13:15","einde":"14:15"},{"podium":"Hotot","artiest":"Sierra Ferrell","start":"15:15","einde":"16:15"},{"podium":"Hotot","artiest":"The Last Dinner Party","start":"17:15","einde":"18:15"},{"podium":"Hotot","artiest":"Dabeull Live Band","start":"19:15","einde":"20:15"},{"podium":"Hotot","artiest":"David Byrne","start":"21:15","einde":"22:15"},{"podium":"Hotot","artiest":"The XX","start":"23:15","einde":"01:00"},{"podium":"Teddy Widder","artiest":"Arp Frique & The Perpetual Singers","start":"12:15","einde":"13:15"},{"podium":"Teddy Widder","artiest":"All Them Witches","start":"14:15","einde":"15:15"},{"podium":"Teddy Widder","artiest":"Johnny Marr","start":"16:15","einde":"17:15"},{"podium":"Teddy Widder","artiest":"Oklou","start":"18:15","einde":"19:15"},{"podium":"Teddy Widder","artiest":"Joy Crookes","start":"20:15","einde":"21:15"},{"podium":"Teddy Widder","artiest":"¥ØU$UK€ ¥UK1MAT$U","start":"21:15","einde":"23:15"},{"podium":"Teddy Widder","artiest":"Rabbit Radio: Indie Gloria","start":"00:45","einde":"03:00"},{"podium":"Fuzzy Lop","artiest":"Folk Bitch Trio","start":"12:30","einde":"13:30"},{"podium":"Fuzzy Lop","artiest":"Midnight Generation","start":"14:15","einde":"15:00"},{"podium":"Fuzzy Lop","artiest":"Jim Legxacy","start":"16:15","einde":"17:15"},{"podium":"Fuzzy Lop","artiest":"Westside Cowboy","start":"18:15","einde":"19:15"},{"podium":"Fuzzy Lop","artiest":"Baxter Dury","start":"20:15","einde":"21:15"},{"podium":"Fuzzy Lop","artiest":"The Mary Wallopers","start":"22:15","einde":"23:15"},{"podium":"Fuzzy Lop","artiest":"Moxes","start":"00:15","einde":"02:00"},{"podium":"Fuzzy Lop","artiest":"Mall Grab B2B Narciss","start":"02:00","einde":"04:30"},{"podium":"Rex","artiest":"Morning Rave","start":"11:00","einde":"12:00"},{"podium":"Rex","artiest":"Jannah","start":"12:00","einde":"14:00"},{"podium":"Rex","artiest":"Zohar","start":"14:00","einde":"16:00"},{"podium":"Rex","artiest":"Croatian Amor (Live)","start":"16:00","einde":"17:00"},{"podium":"Rex","artiest":"Vegyn","start":"17:00","einde":"19:00"},{"podium":"Rex","artiest":"Verity","start":"19:30","einde":"21:15"},{"podium":"Rex","artiest":"Nick León (Live)","start":"21:15","einde":"22:00"},{"podium":"Rex","artiest":"Pariah","start":"22:00","einde":"00:30"},{"podium":"Rex","artiest":"Ciel","start":"00:30","einde":"02:30"},{"podium":"Rex","artiest":"Upsammy B2B Gyrofield","start":"02:30","einde":"04:30"},{"podium":"The Bizarre","artiest":"Samba Workshop","start":"12:00","einde":"12:30"},{"podium":"The Bizarre","artiest":"Roda da Holanda","start":"12:30","einde":"14:00"},{"podium":"The Bizarre","artiest":"Tienson (DJ-set)","start":"14:00","einde":"15:30"},{"podium":"The Bizarre","artiest":"Marla Kether (DJ)","start":"15:30","einde":"17:00"},{"podium":"The Bizarre","artiest":"KC Sumatra","start":"17:00","einde":"18:30"},{"podium":"The Bizarre","artiest":"Galecta","start":"18:30","einde":"20:00"},{"podium":"The Bizarre","artiest":"C.Frim","start":"20:00","einde":"22:00"},{"podium":"The Bizarre","artiest":"DJ Travella","start":"22:00","einde":"23:00"},{"podium":"The Bizarre","artiest":"Hibotep","start":"23:00","einde":"00:30"},{"podium":"The Bizarre","artiest":"Turbolenta","start":"00:30","einde":"02:00"},{"podium":"The Bizarre","artiest":"DJ Babatr","start":"02:00","einde":"03:30"},{"podium":"Bossa Nova","artiest":"Djuwa Mroivili","start":"10:30","einde":"11:15"},{"podium":"Bossa Nova","artiest":"Lumï","start":"13:30","einde":"14:15"},{"podium":"Bossa Nova","artiest":"Frans Kalf","start":"15:15","einde":"16:00"},{"podium":"Bossa Nova","artiest":"Madalitso Band","start":"17:15","einde":"18:00"},{"podium":"Bossa Nova","artiest":"Stay Away From Dante!","start":"19:15","einde":"20:00"},{"podium":"Bossa Nova","artiest":"Orkater & Invites","start":"21:15","einde":"02:45"},{"podium":"The Croque Madame","artiest":"The Space Choir","start":"12:00","einde":"13:00"},{"podium":"The Croque Madame","artiest":"The Croque Madame Revue by Maison The Faux","start":"14:00","einde":"21:00"},{"podium":"The Croque Madame","artiest":"Alice Olsthoorn","start":"22:00","einde":"22:45"},{"podium":"The Croque Madame","artiest":"DJ Shahmaran","start":"22:45","einde":"00:30"},{"podium":"The Croque Madame","artiest":"Toccororo","start":"00:30","einde":"02:00"},{"podium":"The Croque Madame","artiest":"Mayo","start":"02:00","einde":"03:30"},{"podium":"Holding","artiest":"Prof. Soortkill","start":"11:00","einde":"12:00"},{"podium":"Holding","artiest":"Maha","start":"13:30","einde":"14:15"},{"podium":"Holding","artiest":"Clitteband","start":"15:30","einde":"16:15"},{"podium":"Holding","artiest":"Dear Omen","start":"17:30","einde":"18:15"},{"podium":"Holding","artiest":"VERRASSING","start":"19:30","einde":"20:15"},{"podium":"Holding","artiest":"Hypnosis Therapy","start":"21:30","einde":"22:15"},{"podium":"Holding","artiest":"Nachttrein","start":"23:00","einde":"04:00"},{"podium":"Radiate VI","artiest":"Glinted Records w/ Nessim & Gateless","start":"11:00","einde":"13:00"},{"podium":"Radiate VI","artiest":"Jacob Dwyer","start":"13:00","einde":"14:00"},{"podium":"Radiate VI","artiest":"Refreshers","start":"14:00","einde":"15:00"},{"podium":"Radiate VI","artiest":"Gizem Öz","start":"15:00","einde":"16:00"},{"podium":"Radiate VI","artiest":"Orpheu The Wizard","start":"16:00","einde":"17:00"},{"podium":"Radiate VI","artiest":"Farida Amadou","start":"17:00","einde":"18:00"},{"podium":"Radiate VI","artiest":"Berton","start":"19:00","einde":"21:00"},{"podium":"Radiate VI","artiest":"Lazergazer","start":"21:00","einde":"23:00"},{"podium":"Idyllische Veldje","artiest":"Knits & Notes","start":"11:00","einde":"13:30"},{"podium":"Idyllische Veldje","artiest":"Dans Workshop","start":"13:30","einde":"14:30"},{"podium":"Idyllische Veldje","artiest":"Discos Horizontes & Jamaican Jukebox","start":"14:30","einde":"22:30"},{"podium":"Idyllische Veldje","artiest":"Club Coco","start":"22:30","einde":"03:30"}]},{"dag":"Zondag","datum":"2026-07-05","acts":[{"podium":"Hotot","artiest":"Naaz","start":"13:30","einde":"14:30"},{"podium":"Hotot","artiest":"Beirut","start":"15:30","einde":"16:30"},{"podium":"Hotot","artiest":"IJsland","start":"17:30","einde":"18:30"},{"podium":"Hotot","artiest":"Loyle Carner","start":"19:30","einde":"20:30"},{"podium":"Hotot","artiest":"Florence + The Machine","start":"21:15","einde":"23:00"},{"podium":"Teddy Widder","artiest":"Kin' Gongolo Kiniata","start":"12:30","einde":"13:30"},{"podium":"Teddy Widder","artiest":"Harry Mack","start":"14:30","einde":"15:30"},{"podium":"Teddy Widder","artiest":"Charlotte Cardin","start":"16:30","einde":"17:30"},{"podium":"Teddy Widder","artiest":"Matt Berninger","start":"18:30","einde":"19:30"},{"podium":"Teddy Widder","artiest":"Overmono","start":"20:30","einde":"21:30"},{"podium":"Teddy Widder","artiest":"Rabbit Radio: Arnold Scheepmaker","start":"22:45","einde":"02:00"},{"podium":"Fuzzy Lop","artiest":"De Nachtwacht","start":"12:30","einde":"13:15"},{"podium":"Fuzzy Lop","artiest":"Derya Yildirim & Grup Şimşek","start":"14:30","einde":"15:30"},{"podium":"Fuzzy Lop","artiest":"Claw Boys Claw","start":"16:30","einde":"17:30"},{"podium":"Fuzzy Lop","artiest":"Deki Alem","start":"18:30","einde":"19:30"},{"podium":"Fuzzy Lop","artiest":"Panic Shack","start":"20:30","einde":"21:15"},{"podium":"Fuzzy Lop","artiest":"Sticks & ???","start":"22:15","einde":"23:00"},{"podium":"Fuzzy Lop","artiest":"Malou","start":"23:00","einde":"01:00"},{"podium":"Fuzzy Lop","artiest":"Gerd Janson B2B Hunee","start":"01:00","einde":"04:00"},{"podium":"Rex","artiest":"Morning Rave","start":"11:00","einde":"12:00"},{"podium":"Rex","artiest":"Paak Listening Club","start":"12:15","einde":"14:15"},{"podium":"Rex","artiest":"Gizem","start":"14:15","einde":"16:30"},{"podium":"Rex","artiest":"Luna Ludmila (Live)","start":"16:30","einde":"17:30"},{"podium":"Rex","artiest":"Hervé","start":"17:30","einde":"19:30"},{"podium":"Rex","artiest":"Rival Consoles (Live)","start":"19:30","einde":"20:30"},{"podium":"Rex","artiest":"Faustin","start":"20:30","einde":"22:30"},{"podium":"Rex","artiest":"Massimiliano Pagliara","start":"22:30","einde":"00:00"},{"podium":"Rex","artiest":"Byron Yeates","start":"00:30","einde":"02:30"},{"podium":"Rex","artiest":"Dr. Rubinstein","start":"02:30","einde":"04:30"},{"podium":"The Bizarre","artiest":"Samba Workshop","start":"12:00","einde":"12:30"},{"podium":"The Bizarre","artiest":"Roda da Holanda","start":"12:30","einde":"14:00"},{"podium":"The Bizarre","artiest":"Yuval Avital","start":"14:00","einde":"15:30"},{"podium":"The Bizarre","artiest":"Arp Frique (DJ-set)","start":"15:30","einde":"17:00"},{"podium":"The Bizarre","artiest":"Grca.","start":"17:00","einde":"18:30"},{"podium":"The Bizarre","artiest":"Ahadadream","start":"18:30","einde":"20:00"},{"podium":"The Bizarre","artiest":"Riddimbox by Rozaly","start":"20:00","einde":"21:00"},{"podium":"The Bizarre","artiest":"DJ Tobzy","start":"21:00","einde":"22:30"},{"podium":"The Bizarre","artiest":"Badsista","start":"22:30","einde":"00:00"},{"podium":"The Bizarre","artiest":"Sia Sierra","start":"00:00","einde":"01:30"},{"podium":"The Bizarre","artiest":"Yucky","start":"01:30","einde":"03:00"},{"podium":"Bossa Nova","artiest":"MSM String Quartet","start":"10:30","einde":"11:00"},{"podium":"Bossa Nova","artiest":"Lonelinoise - Sofia's Trip","start":"11:45","einde":"12:30"},{"podium":"Bossa Nova","artiest":"Nectar Woode","start":"13:30","einde":"14:15"},{"podium":"Bossa Nova","artiest":"Somelinez","start":"15:30","einde":"16:15"},{"podium":"Bossa Nova","artiest":"Raynor","start":"17:30","einde":"18:15"},{"podium":"Bossa Nova","artiest":"Rikas","start":"19:30","einde":"20:15"},{"podium":"Bossa Nova","artiest":"Orkater & Invites","start":"21:15","einde":"02:45"},{"podium":"The Croque Madame","artiest":"The Space Choir","start":"12:00","einde":"13:00"},{"podium":"The Croque Madame","artiest":"The Croque Madame Revue by Maison The Faux","start":"14:00","einde":"21:00"},{"podium":"The Croque Madame","artiest":"Sam Quealy","start":"22:00","einde":"22:45"},{"podium":"The Croque Madame","artiest":"Nicolini","start":"22:45","einde":"00:15"},{"podium":"The Croque Madame","artiest":"Elena Colombi","start":"00:15","einde":"01:45"},{"podium":"The Croque Madame","artiest":"Twiena","start":"01:45","einde":"03:00"},{"podium":"Holding","artiest":"Hotel Mokum & Tra Fasi","start":"11:45","einde":"12:45"},{"podium":"Holding","artiest":"Ajjit","start":"13:45","einde":"14:30"},{"podium":"Holding","artiest":"VERRASSING","start":"15:30","einde":"16:30"},{"podium":"Holding","artiest":"Honey I'm Home","start":"17:45","einde":"18:30"},{"podium":"Holding","artiest":"Vals Alarm","start":"19:45","einde":"20:30"},{"podium":"Holding","artiest":"Bombstrap","start":"21:45","einde":"22:30"},{"podium":"Holding","artiest":"Nachttrein","start":"23:00","einde":"04:00"},{"podium":"Radiate VI","artiest":"Camille Maria","start":"11:00","einde":"13:00"},{"podium":"Radiate VI","artiest":"Jacob Dwyer","start":"13:00","einde":"14:00"},{"podium":"Radiate VI","artiest":"Phantom Wizard","start":"14:00","einde":"15:00"},{"podium":"Radiate VI","artiest":"Rrita Jashari","start":"15:00","einde":"17:00"},{"podium":"Radiate VI","artiest":"Joleidy's Reprieve","start":"17:00","einde":"18:00"},{"podium":"Radiate VI","artiest":"Margie","start":"18:00","einde":"19:00"},{"podium":"Radiate VI","artiest":"Helen Island","start":"19:00","einde":"20:00"},{"podium":"Radiate VI","artiest":"Rainy Miller","start":"20:00","einde":"21:00"},{"podium":"Radiate VI","artiest":"Torus","start":"21:00","einde":"23:00"},{"podium":"Idyllische Veldje","artiest":"Knits & Notes","start":"11:00","einde":"13:30"},{"podium":"Idyllische Veldje","artiest":"Dans Workshop","start":"13:30","einde":"14:30"},{"podium":"Idyllische Veldje","artiest":"Discos Horizontes & Jamaican Jukebox","start":"14:30","einde":"17:00"},{"podium":"Idyllische Veldje","artiest":"Club Coco","start":"17:00","einde":"22:00"},{"podium":"Idyllische Veldje","artiest":"Discos Horizontes & Jamaican Jukebox","start":"22:00","einde":"03:00"}]}]};
 
-// ── Data normalisatie ─────────────────────────────────────────────────────────
+// ── Normaliseer ───────────────────────────────────────────────────────────────
 function normaliseer(raw, bestaand) {
   var map = {};
-  if (bestaand) {
+  if (bestaand && bestaand.dagen) {
     for (var d = 0; d < bestaand.dagen.length; d++) {
       for (var a = 0; a < bestaand.dagen[d].acts.length; a++) {
         var x = bestaand.dagen[d].acts[a];
@@ -125,14 +122,14 @@ function normaliseer(raw, bestaand) {
       var start = (act.start||"").toString().trim();
       var einde = (act.einde||"").toString().trim();
       var artiest = (act.artiest||"").trim();
-      var podium  = (act.podium||"").trim();
+      var podium = (act.podium||"").trim();
       if (!artiest || !start) continue;
       var key = dag.datum+"|"+start+"|"+artiest;
-      var beoordeling = null, notitie = "";
-      if (map[key]) { beoordeling = map[key].beoordeling; notitie = map[key].notitie||""; }
-      acts.push({ datum:dag.datum, dagSleutel:dag.dag.toLowerCase(), podium:podium, artiest:artiest, start:start, einde:einde, beoordeling:beoordeling, notitie:notitie });
+      var beoor = null, notitie = "";
+      if (map[key]) { beoor = map[key].beoordeling; notitie = map[key].notitie||""; }
+      acts.push({ datum:dag.datum, dagSleutel:dag.dag.toLowerCase(), podium:podium, artiest:artiest, start:start, einde:einde, beoordeling:beoor, notitie:notitie });
     }
-    acts.sort(function(a,b) { return tijdSort(a.start) - tijdSort(b.start); });
+    acts.sort(function(a,b) { return tijdSort(a.start)-tijdSort(b.start); });
     dagen.push({ dag:dag.dag, datum:dag.datum, acts:acts });
   }
   return { festival:raw.festival||"DTRH 2026", ingeladenOp:bestaand?bestaand.ingeladenOp:now, bijgewerktOp:now, dagen:dagen };
@@ -171,8 +168,7 @@ function toggleTestWeer() {
 
 function berekenWeer(datum,start,einde) {
   if (!datum||!start) return null;
-  var bu=parseInt(start.split(":")[0]);
-  var eu=parseInt((einde||start).split(":")[0]);
+  var bu=parseInt(start.split(":")[0]), eu=parseInt((einde||start).split(":")[0]);
   if (isNaN(bu)) return null;
   if (isNaN(eu)||eu<bu) eu=bu+1;
   var tp=0,tc=0,n=0;
@@ -191,13 +187,12 @@ function berekenWeer(datum,start,einde) {
 
 function maakWeerIcoon(type) {
   if (type==="zon"||type==="bewolkt") { var s=document.createElement("span"); s.style.fontSize="16px"; s.textContent=type==="zon"?"☀️":"⛅"; return s; }
-  var svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-  svg.style.cssText="display:inline-block;vertical-align:middle;";
+  var svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.style.cssText="display:inline-block;vertical-align:middle;";
   if (type==="licht") {
     svg.setAttribute("width","16");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 18 20");
     var p=document.createElementNS("http://www.w3.org/2000/svg","path");
     p.setAttribute("d","M9 1C9 1 2 9 2 13.5C2 17.09 5.13 20 9 20C12.87 20 16 17.09 16 13.5C16 9 9 1 9 1Z");
-    p.setAttribute("fill","#4a90e8");svg.appendChild(p);
+    p.setAttribute("fill","#4a90e8"); svg.appendChild(p);
   } else {
     svg.setAttribute("width","24");svg.setAttribute("height","18");svg.setAttribute("viewBox","0 0 26 20");
     var p1=document.createElementNS("http://www.w3.org/2000/svg","path");
@@ -205,7 +200,7 @@ function maakWeerIcoon(type) {
     p1.setAttribute("fill","#4a90e8");p1.setAttribute("opacity","0.55");
     var p2=document.createElementNS("http://www.w3.org/2000/svg","path");
     p2.setAttribute("d","M18 1C18 1 12 8.5 12 12.5C12 15.81 14.69 18.5 18 18.5C21.31 18.5 24 15.81 24 12.5C24 8.5 18 1 18 1Z");
-    p2.setAttribute("fill","#4a90e8");svg.appendChild(p1);svg.appendChild(p2);
+    p2.setAttribute("fill","#4a90e8"); svg.appendChild(p1); svg.appendChild(p2);
   }
   return svg;
 }
@@ -228,9 +223,10 @@ if (darkMode) { document.body.className="dark"; document.getElementById("btn-dar
 
 var opgeslagen = localStorage.getItem(LS_D);
 if (opgeslagen) {
-  try { var parsed=JSON.parse(opgeslagen); if (parsed&&parsed.dagen) { data=normaliseer(PROG,parsed); slaOp(); } } catch(e) {}
+  try { var parsed=JSON.parse(opgeslagen); if (parsed&&parsed.dagen) data=normaliseer(PROG,parsed); } catch(e) {}
 }
-if (!data) { data=normaliseer(PROG,null); slaOp(); }
+if (!data) data=normaliseer(PROG,null);
+slaOp();
 haalWeerOp(data.dagen);
 render();
 
@@ -303,7 +299,9 @@ function renderTimetable() {
     (function(ai){
       var act=dag.acts[ai], kleur=PKL[act.podium]||"#888";
       var row=document.createElement("div"); row.className="row";
-      var rij1=document.createElement("div"); rij1.className="row-sub";
+
+      // Rij 1: tijd + podium
+      var rij1=document.createElement("div"); rij1.className="row-rij";
       var tijd=document.createElement("span"); tijd.className="col-tijd tijd"; tijd.textContent=act.start+(act.einde?" – "+act.einde:"");
       var badge=document.createElement("span"); badge.className="podium-badge"; badge.style.background=kleur+"33"; badge.style.color=kleur; badge.textContent=act.podium;
       var pw=document.createElement("span"); pw.className="col-podium"; pw.appendChild(badge);
@@ -313,9 +311,15 @@ function renderTimetable() {
         wl.style.cssText="display:inline-flex;align-items:center;text-decoration:none;line-height:1;"; wl.appendChild(maakWeerIcoon(wt)); pw.appendChild(wl);
       }
       rij1.appendChild(tijd); rij1.appendChild(pw);
-      var naam=document.createElement("a"); naam.className="naam-link col-naam"; naam.textContent=act.artiest;
+
+      // Rij 2: artiest
+      var rij2=document.createElement("div"); rij2.className="row-rij";
+      var naam=document.createElement("a"); naam.className="naam-link"; naam.textContent=act.artiest;
       naam.href="https://open.spotify.com/search/"+encodeURIComponent(act.artiest); naam.target="_blank"; naam.rel="noopener noreferrer";
-      var rij2=document.createElement("div"); rij2.className="row-sub"; rij2.appendChild(naam);
+      rij2.appendChild(naam);
+
+      // Rij 3: sterren + notitie
+      var rij3=document.createElement("div"); rij3.className="row-rij";
       var sterren=document.createElement("div"); sterren.className="sterren col-ster";
       for (var s=1;s<=5;s++) {
         (function(s){
@@ -330,38 +334,39 @@ function renderTimetable() {
       ns.addEventListener("click",function(){ns.style.display="none";ni.style.display="block";ni.focus();});
       ni.addEventListener("blur",function(){dag.acts[ai].notitie=ni.value;data.bijgewerktOp=new Date().toISOString();slaOp();renderHeader();ns.textContent=ni.value||"Notitie...";ns.className="notitie-tekst"+(ni.value?"":" leeg");ni.style.display="none";ns.style.display="";});
       ni.addEventListener("keydown",function(e){if(e.key==="Enter")ni.blur();});
-      nw.appendChild(ns);nw.appendChild(ni);
-      var rs=document.createElement("div"); rs.className="row-sub"; rs.appendChild(sterren); rs.appendChild(nw);
-      row.appendChild(rij1); row.appendChild(rij2); row.appendChild(rs);
+      nw.appendChild(ns); nw.appendChild(ni);
+      rij3.appendChild(sterren); rij3.appendChild(nw);
+
+      row.appendChild(rij1); row.appendChild(rij2); row.appendChild(rij3);
       tbody.appendChild(row);
     })(indices[ii]);
   }
 }
 
 // ── Knoppen ───────────────────────────────────────────────────────────────────
-document.getElementById("file-import").addEventListener("change", function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      var imported = JSON.parse(ev.target.result);
-      if (!imported || !imported.dagen) throw new Error("Ongeldig bestand.");
-      data = normaliseer(PROG, imported);
-      slaOp();
-      render();
-      var lbl = document.getElementById("lbl-import");
-      lbl.style.background = "#27ae60"; lbl.style.color = "#fff";
-      setTimeout(function() { lbl.style.background = ""; lbl.style.color = ""; }, 2000);
-    } catch(e) { alert("Importeren mislukt: " + e.message); }
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-});
+document.getElementById("btn-export").addEventListener("click",function(){
   dlJson("DTRHplanner-backup-"+ddmm()+".json");
   var btn=document.getElementById("btn-export"); btn.textContent="✓ Geëxporteerd!"; btn.classList.add("saved");
   setTimeout(function(){btn.textContent="📤 Exporteer";btn.classList.remove("saved");},2000);
 });
+
+document.getElementById("file-import").addEventListener("change",function(e){
+  var file=e.target.files[0]; if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try {
+      var imported=JSON.parse(ev.target.result);
+      if (!imported||!imported.dagen) throw new Error("Ongeldig bestand.");
+      data=normaliseer(PROG,imported);
+      slaOp(); render();
+      var lbl=document.getElementById("lbl-import"); lbl.style.background="#27ae60"; lbl.style.color="#fff";
+      setTimeout(function(){lbl.style.background="";lbl.style.color="";},2000);
+    } catch(err) { alert("Importeren mislukt: "+err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value="";
+});
+
 document.getElementById("btn-dark").addEventListener("click",function(){
   darkMode=!darkMode; document.body.className=darkMode?"dark":"light";
   this.textContent=darkMode?"☀️":"🌙"; localStorage.setItem(LS_K,darkMode);
