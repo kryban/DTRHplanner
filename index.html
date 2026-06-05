@@ -44,7 +44,7 @@
     .row:last-child { border-bottom: none; }
     .tijd { font-family: monospace; font-size: 11px; color: var(--text-sec); }
     .podium-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; text-align: center; white-space: nowrap; }
-    .naam-link { font-weight: 600; font-size: 13px; flex: 1; color: var(--text); text-decoration: none; }
+    .naam-link { font-weight: 600; font-size: 13px; color: var(--text); text-decoration: none; width: 100%; display: block; }
     .naam-link:hover { color: #1db954; }
     .sterren { display: flex; gap: 2px; }
     .ster { font-size: 20px; cursor: pointer; color: #ccc; user-select: none; line-height: 1; transition: color 0.1s; }
@@ -84,7 +84,7 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v1.2.0</div>
+  <div class="versie">v1.2.1</div>
 </div>
 <script>
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
@@ -299,6 +299,7 @@ function renderTimetable() {
     (function(ai){
       var act=dag.acts[ai], kleur=PKL[act.podium]||"#888";
       var row=document.createElement("div"); row.className="row";
+      var rij1=document.createElement("div"); rij1.className="row-sub";
       var tijd=document.createElement("span"); tijd.className="col-tijd tijd"; tijd.textContent=act.start+(act.einde?" – "+act.einde:"");
       var badge=document.createElement("span"); badge.className="podium-badge"; badge.style.background=kleur+"33"; badge.style.color=kleur; badge.textContent=act.podium;
       var pw=document.createElement("span"); pw.className="col-podium"; pw.appendChild(badge);
@@ -307,8 +308,10 @@ function renderTimetable() {
         var wl=document.createElement("a"); wl.href="https://www.buienradar.nl/weer/beuningen/nl/2758912"; wl.target="_blank"; wl.rel="noopener noreferrer";
         wl.style.cssText="display:inline-flex;align-items:center;text-decoration:none;line-height:1;"; wl.appendChild(maakWeerIcoon(wt)); pw.appendChild(wl);
       }
+      rij1.appendChild(tijd); rij1.appendChild(pw);
       var naam=document.createElement("a"); naam.className="naam-link col-naam"; naam.textContent=act.artiest;
       naam.href="https://open.spotify.com/search/"+encodeURIComponent(act.artiest); naam.target="_blank"; naam.rel="noopener noreferrer";
+      var rij2=document.createElement("div"); rij2.className="row-sub"; rij2.appendChild(naam);
       var sterren=document.createElement("div"); sterren.className="sterren col-ster";
       for (var s=1;s<=5;s++) {
         (function(s){
@@ -325,7 +328,7 @@ function renderTimetable() {
       ni.addEventListener("keydown",function(e){if(e.key==="Enter")ni.blur();});
       nw.appendChild(ns);nw.appendChild(ni);
       var rs=document.createElement("div"); rs.className="row-sub"; rs.appendChild(sterren); rs.appendChild(nw);
-      row.appendChild(tijd);row.appendChild(pw);row.appendChild(naam);row.appendChild(rs);
+      row.appendChild(rij1); row.appendChild(rij2); row.appendChild(rs);
       tbody.appendChild(row);
     })(indices[ii]);
   }
