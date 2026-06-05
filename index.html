@@ -86,10 +86,18 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v1.1.0</div>
+      <div class="versie">v1.1.1</div>
 </div>
 
 <script>
+function tijdNaarSorteerwaarde(tijdStr) {
+  if (!tijdStr) return 0;
+  var uur = parseInt(tijdStr.split(":")[0]);
+  if (isNaN(uur)) return 0;
+  if (uur < 6) uur += 24;
+  return uur * 60 + parseInt((tijdStr.split(":")[1]||"0"));
+}
+
 // ── Statische programmering ───────────────────────────────────────────────────
 var PROGRAMMERING = {
   "festival": "Down The Rabbit Hole 2026",
@@ -356,7 +364,7 @@ function normaliseerDTRH(raw, bestaandeData) {
       if (bestaandMap[key]) { beoordeling = bestaandMap[key].beoordeling; notitie = bestaandMap[key].notitie||""; }
       acts.push({ datum: dag.datum, dagSleutel: dag.dag.toLowerCase(), podium: podium, artiest: artiest, start: start, einde: einde, beoordeling: beoordeling, notitie: notitie });
     }
-    acts.sort(function(a,b) { return a.start<b.start?-1:a.start>b.start?1:0; });
+    acts.sort(function(a,b) { return tijdNaarSorteerwaarde(a.start)-tijdNaarSorteerwaarde(b.start); });
     dagen.push({ dag: dag.dag, datum: dag.datum, acts: acts });
   }
   return { festival: raw.festival||"DTRH 2026", ingeladenOp: bestaandeData?bestaandeData.ingeladenOp:now, bijgewerktOp: now, dagen: dagen };
