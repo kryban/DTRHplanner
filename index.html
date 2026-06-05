@@ -68,6 +68,10 @@
     <div id="header-actions">
       <button id="btn-dark">🌙</button>
       <button id="btn-export">📤 Exporteer</button>
+      <label class="btn" id="lbl-import">
+        📥 Importeer
+        <input type="file" id="file-import" accept=".json" style="display:none" />
+      </label>
       <!-- TESTKNOP - verwijderen na testen -->
       <button id="btn-testweer">🌦 Testweer</button>
     </div>
@@ -84,7 +88,7 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v1.2.1</div>
+  <div class="versie">v1.2.2</div>
 </div>
 <script>
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
@@ -335,7 +339,25 @@ function renderTimetable() {
 }
 
 // ── Knoppen ───────────────────────────────────────────────────────────────────
-document.getElementById("btn-export").addEventListener("click",function(){
+document.getElementById("file-import").addEventListener("change", function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var imported = JSON.parse(ev.target.result);
+      if (!imported || !imported.dagen) throw new Error("Ongeldig bestand.");
+      data = normaliseer(PROG, imported);
+      slaOp();
+      render();
+      var lbl = document.getElementById("lbl-import");
+      lbl.style.background = "#27ae60"; lbl.style.color = "#fff";
+      setTimeout(function() { lbl.style.background = ""; lbl.style.color = ""; }, 2000);
+    } catch(e) { alert("Importeren mislukt: " + e.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
   dlJson("DTRHplanner-backup-"+ddmm()+".json");
   var btn=document.getElementById("btn-export"); btn.textContent="✓ Geëxporteerd!"; btn.classList.add("saved");
   setTimeout(function(){btn.textContent="📤 Exporteer";btn.classList.remove("saved");},2000);
