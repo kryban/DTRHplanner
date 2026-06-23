@@ -71,8 +71,7 @@
         📥 Importeer
         <input type="file" id="file-import" accept=".json" style="display:none" />
       </label>
-      <!-- TESTKNOP - verwijderen na testen -->
-      <button id="btn-testweer">🌦 Testweer</button>
+      <!-- TESTKNOP verwijderd -->
     </div>
   </div>
   <div id="filter-balk"></div>
@@ -86,7 +85,7 @@
     <div id="timetable-body"></div>
   </div>
   <p style="font-size:11px; color:var(--text-sec); margin-top:10px;">Wijzigingen worden automatisch opgeslagen. Gebruik "Exporteer" voor een backup.</p>
-  <div class="versie">v1.2.2</div>
+  <div class="versie">v2.0.0</div>
 </div>
 <script>
 // ── Tijdsortering ─────────────────────────────────────────────────────────────
@@ -136,34 +135,20 @@ function normaliseer(raw, bestaand) {
 }
 
 // ── Weer ──────────────────────────────────────────────────────────────────────
-var weerData = {}, testWeerActief = false;
+var weerData = {};
 
 function haalWeerOp(dagen) {
   var datums = [];
   for (var i = 0; i < dagen.length; i++) { if (dagen[i].datum) datums.push(dagen[i].datum); }
   if (!datums.length) return;
   datums.sort();
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=51.87&longitude=5.73&hourly=precipitation,cloudcover&timezone=Europe%2FAmsterdam&start_date="+datums[0]+"&end_date="+datums[datums.length-1])
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=51.87&longitude=5.73&hourly=precipitation,cloudcover,temperature_2m&timezone=Europe%2FAmsterdam&start_date="+datums[0]+"&end_date="+datums[datums.length-1])
     .then(function(r){return r.json();})
     .then(function(json){
-      for (var i=0;i<json.hourly.time.length;i++) weerData[json.hourly.time[i]]={precipitation:json.hourly.precipitation[i],cloudcover:json.hourly.cloudcover[i]};
-      if (data) renderTimetable();
+      var times=json.hourly.time, pr=json.hourly.precipitation, cl=json.hourly.cloudcover, te=json.hourly.temperature_2m;
+      for(var i=0;i<times.length;i++) weerData[times[i]]={precipitation:pr[i],cloudcover:cl[i],temperature:te[i]};
+      if(data) renderTimetable();
     }).catch(function(){});
-}
-
-function toggleTestWeer() {
-  testWeerActief = !testWeerActief;
-  var btn = document.getElementById("btn-testweer");
-  if (testWeerActief) {
-    var types=[{precipitation:0,cloudcover:10},{precipitation:0,cloudcover:60},{precipitation:0.8,cloudcover:80},{precipitation:3.5,cloudcover:90}];
-    var dd=["2026-07-03","2026-07-04","2026-07-05"];
-    for (var d=0;d<dd.length;d++) for (var u=0;u<24;u++) weerData[dd[d]+"T"+(u<10?"0":"")+u+":00"]=types[(d*8+u)%4];
-    btn.style.background="#f5c518"; btn.style.color="#7a6000"; btn.style.border="none";
-  } else {
-    weerData={};
-    btn.style.background=""; btn.style.color=""; btn.style.border="";
-  }
-  if (data) renderTimetable();
 }
 
 function berekenWeer(datum,start,einde) {
@@ -305,11 +290,13 @@ function renderTimetable() {
       var tijd=document.createElement("span"); tijd.className="col-tijd tijd"; tijd.textContent=act.start+(act.einde?" – "+act.einde:"");
       var badge=document.createElement("span"); badge.className="podium-badge"; badge.style.background=kleur+"33"; badge.style.color=kleur; badge.textContent=act.podium;
       var pw=document.createElement("span"); pw.className="col-podium"; pw.appendChild(badge);
-      var wt=berekenWeer(act.datum,act.start,act.einde);
-      if (wt) {
-        var wl=document.createElement("a"); wl.href="https://www.buienradar.nl/weer/beuningen/nl/2758912"; wl.target="_blank"; wl.rel="noopener noreferrer";
-        wl.style.cssText="display:inline-flex;align-items:center;text-decoration:none;line-height:1;"; wl.appendChild(maakWeerIcoon(wt)); pw.appendChild(wl);
-      }
+      try {
+        var wt=berekenWeer(act.datum,act.start,act.einde);
+        if (wt) {
+          var wl=document.createElement("a"); wl.href="https://www.buienradar.nl/weer/beuningen/nl/2759016"; wl.target="_blank"; wl.rel="noopener noreferrer";
+          wl.style.cssText="display:inline-flex;align-items:center;text-decoration:none;line-height:1;"; wl.appendChild(maakWeerElement(wt)); pw.appendChild(wl);
+        }
+      } catch(e) {}
       rij1.appendChild(tijd); rij1.appendChild(pw);
 
       // Rij 2: artiest
@@ -371,7 +358,6 @@ document.getElementById("btn-dark").addEventListener("click",function(){
   darkMode=!darkMode; document.body.className=darkMode?"dark":"light";
   this.textContent=darkMode?"☀️":"🌙"; localStorage.setItem(LS_K,darkMode);
 });
-document.getElementById("btn-testweer").addEventListener("click",toggleTestWeer);
 document.querySelectorAll(".sortable").forEach(function(el){
   el.addEventListener("click",function(){
     var k=el.dataset.kolom;
